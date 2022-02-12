@@ -15,18 +15,18 @@ protocol QRScannerServiceDelegate: AnyObject {
 
 final class QRScannerService: NSObject {
     
+    weak var delegate: QRScannerServiceDelegate?
+    
     private enum QRScannerCameraPermission {
         case permissionDenied
         case permissionNotDetermined
         case permissionAllowed
     }
     
-    var overlayImage: UIImage!
-    
     private var contentView: QRScannerContentView?
-    private let session = AVCaptureSession()
+    private var session: AVCaptureSession?
     
-    weak var delegate: QRScannerServiceDelegate?
+    private var currentQRCode: String?
 }
 
 extension QRScannerService {
@@ -36,53 +36,32 @@ extension QRScannerService {
             delegate?.permissionDenied()
             return
         }
-        guard let captureDevice = AVCaptureDevice.default(for: AVMediaType.video) else {
-            delegate?.failed()
-            return
-        }
         
-        do {
-            let input = try AVCaptureDeviceInput(device: captureDevice)
-            session.addInput(input)
-        } catch {
-            delegate?.failed()
-        }
+        guard configurateSession() else { return }
+        let output = session?.outputs.first as? AVCaptureMetadataOutput
         
-        let output = AVCaptureMetadataOutput()
-        session.addOutput(output)
-        
-        
-        output.setMetadataObjectsDelegate(self, queue: DispatchQueue.main)
-        switch type {
-        case .both:
-            output.metadataObjectTypes = [.ean13, .qr, .dataMatrix]
-            overlayImage = UIImage(named: "qr+barcode-view")
-        case .bar:
-            output.metadataObjectTypes = [.ean13, .qr]
-            overlayImage = UIImage(named: "barcode-view")
-        case .square:
-            output.metadataObjectTypes = [.ean13, .dataMatrix]
-            overlayImage = UIImage(named: "qr-view")
-        }
+        output?.setMetadataObjectsDelegate(self, queue: DispatchQueue.main)
+        output?.metadataObjectTypes = type.types
         
         guard permission != .permissionDenied else {
             delegate?.permissionDenied()
             return
         }
-        let videoPreviewLayer = AVCaptureVideoPreviewLayer(session: session)
-        contentView = makeContentView(from: view, previewLayer: videoPreviewLayer)
         
-        contentView?.completion = { [weak self] in
-            self?.stop()
+        guard let session = session else {
+            delegate?.failed()
+            return
         }
-        view.addSubview(contentView!)
+        let videoPreviewLayer = AVCaptureVideoPreviewLayer(session: session)
+        makeContentView(from: view, previewLayer: videoPreviewLayer, overlayImage: type.icon)
         session.startRunning()
     }
     
     func stop() {
-        guard let contentView = contentView else { return }
-        contentView.removeFromSuperview()
-        session.stopRunning()
+        session?.stopRunning()
+        contentView?.stop()
+        delegate?.recognize(code: currentQRCode)
+        currentQRCode = nil
     }
 }
 
@@ -98,24 +77,45 @@ private extension QRScannerService {
 }
 
 private extension QRScannerService {
-    func makeContentView(from parent: UIView, previewLayer: AVCaptureVideoPreviewLayer) -> QRScannerContentView {
-        parent.layoutIfNeeded()
+    func makeContentView(from parent: UIView, previewLayer: AVCaptureVideoPreviewLayer, overlayImage: UIImage) {
         let view = QRScannerContentView()
-        view.frame = parent.bounds
-        view.imageView.image = overlayImage
+        view.configurate(overlayImage: overlayImage, previewLayer: previewLayer)
+        view.completion = { [weak self] in
+            self?.stop()
+        }
         parent.addSubview(view)
+        contentView = view
+    }
+}
+
+private extension QRScannerService {
+    func configurateSession() -> Bool {
+        guard session == nil else { return true }
+        guard let captureDevice = AVCaptureDevice.default(for: AVMediaType.video) else {
+            delegate?.failed()
+            return false
+        }
         
-        previewLayer.frame = parent.layer.bounds
-        previewLayer.videoGravity = .resizeAspectFill
-        parent.layer.addSublayer(previewLayer)
-        return view
+        session = AVCaptureSession()
+        
+        do {
+            let input = try AVCaptureDeviceInput(device: captureDevice)
+            session?.addInput(input)
+        } catch {
+            delegate?.failed()
+            return false
+        }
+        
+        let output = AVCaptureMetadataOutput()
+        session?.addOutput(output)
+        return true
     }
 }
 
 extension QRScannerService: AVCaptureMetadataOutputObjectsDelegate {
     func metadataOutput(_ output: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from connection: AVCaptureConnection) {
         let item = metadataObjects.first as? AVMetadataMachineReadableCodeObject
-        delegate?.recognize(code: item?.stringValue ?? nil)
-        stop()
+        currentQRCode = item?.stringValue
+        contentView?.update(from: item?.stringValue)
     }
 }

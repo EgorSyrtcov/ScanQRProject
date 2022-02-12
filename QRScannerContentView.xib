@@ -10,7 +10,10 @@
     <objects>
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="QRScannerContentView" customModule="ScanQRProject" customModuleProvider="target">
             <connections>
+                <outlet property="batch" destination="WQK-i3-2An" id="55n-sU-Et4"/>
+                <outlet property="expireDate" destination="0eh-wn-d2O" id="qO4-0p-bop"/>
                 <outlet property="imageView" destination="oCy-0K-B57" id="lmK-EE-JEV"/>
+                <outlet property="productID" destination="SR8-wl-d3w" id="9Eg-cX-TdE"/>
                 <outlet property="videoView" destination="vf9-M7-N5l" id="vEa-Qk-s6n"/>
             </connections>
         </placeholder>

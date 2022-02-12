@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Receive Goods</title>
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="keywords" content="">
+    <meta name="description" content="">
+    <link rel="stylesheet" href="https://pipechain.com/css/pipechain.css">
+    <link rel="stylesheet" href="https://pipechain.com/css/pipechain-colors.css">
+    <link rel="stylesheet" href="https://pipechain.com/css/pipechain-theme.css">
+    <link rel="stylesheet" href="https://pipechain.com/css/pipechain-app.css">
+    <link rel="stylesheet" href="https://pipechain.com/css/animate.css">
+    <link rel="stylesheet" href="https://pipechain.com/css/pipechain-app.css">
+    <link rel="stylesheet" href="https://pipechain.com/symbols/fontawesome/css/all.css">
+    <link rel="stylesheet" href="extra.css">
+    <script type="text/javascript">
+		function updateFromNative(productId, batch, date) {
+			document.getElementById("id").value = productId;
+			document.getElementById("batch").value = batch;
+			document.getElementById("expiry").value = date;
+		}
+
+    </script>
+</head>
+
+<body>
+<div class="container app-container">
+
+    <p class="text">
+    <h2 id="name"></h2>
+    <div class="scan-button" id="scan_barcode">
+        <a href="app://?camera=bar">
+            <button type="button" class="btn btn-xl btn-block dixie-bg dixie-border">
+                <i class="fas fa-camera white"></i>
+                Barcode
+            </button>
+        </a>
+    </div>
+    <div class="scan-button" id="scan_qr">
+        <a href="app://?camera=qr">
+            <button type="button" class="btn btn-xl btn-block dixie-bg dixie-border">
+                <i class="fas fa-camera white"></i>
+                QR
+            </button>
+        </a>
+    </div>
+    <div class="scan-button" id="scan_barcode_qr">
+        <a href="app://?camera">
+            <button type="button" class="btn btn-xl btn-block dixie-bg dixie-border">
+                <i class="fas fa-camera white"></i>
+                Barcode and QR
+            </button>
+        </a>
+    </div>
+    <form id="camera-form">
+
+        <div id="value" class="form-group">
+            <div class="input-group">
+                <input type="scanned" class="form-control full" disabled id="result"
+                       placeholder="Add scanned value here"
+                       value="">
+                <div class="input-group-addon dixie-bg dixie-border cursor"
+                     onclick="javascript:BarcodeScanner('both');"><i
+                        class="fas fa-camera white"></i></div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="control-label hippie" for="id">Product ID</label>
+            <input type="number" inputmode="numeric" class="form-control" id="id"
+                   placeholder="Looks like 12345678" value="">
+        </div>
+
+        <div class="form-group">
+            <label class="control-label hippie" for="batch">Batch (LOT)</label>
+            <input type="text" inputmode="numeric" class="form-control" id="batch"
+                   placeholder="Looks like 12345678" value="">
+        </div>
+
+        <div class="form-group">
+            <label class="control-label hippie" for="expiry">Expiry date</label>
+            <input type="text" class="form-control" id="expiry" placeholder="Looks like 2021-12-24"
+                   value="">
+        </div>
+
+        <h5 class="hippie">Current total<span id="current" class="pull-right shark"></span></h5>
+
+        <hr>
+
+        <div class="form-group">
+            <label class="control-label hippie" for="quantity">Quantity received</label>
+            <div class="input-group">
+                <span class="input-group-addon laurel-border"><i class="fas fa-plus laurel fat"></i></span>
+                <input type="number" inputmode="numeric" class="form-control input-lg fat"
+                       id="quantity" placeholder="Specify quantity"
+                       value="">
+                <div class="input-group-addon input-lg orchid-bg orchid-border"
+                     onclick="javascript:subtractOneReception();"><i
+                        class="fas fa-minus white thin"></i></div>
+                <div class="input-group-addon input-lg lavender-bg lavender-border"
+                     onclick="javascript:addOneReception();"><i
+                        class="fas fa-plus white thin"></i></div>
+            </div>
+        </div>
+
+        <h5 class="hippie">New total<span id="total" class="pull-right shark"></span></h5>
+
+        <hr>
+
+        <div class="form-group clearfix">
+            <button type="button" id="register" class="btn btn-success btn-xl btn-block"
+                    onclick="javascript:resetForm();"
+                    disabled>
+                Register reception
+            </button>
+        </div>
+    </form>
+
+    <p>
+
+</div>
+
+
+</body>
+
+</html>
